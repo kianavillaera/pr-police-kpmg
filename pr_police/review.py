@@ -92,7 +92,7 @@ def ask_model(prompt: str) -> str:
 
     try:
         response = requests.post(
-            pr_review_url, json={'prompt': sanitize_prompt(prompt), 'model': model}, timeout=500)
+            pr_review_url, json={'prompt': sanitize_prompt(prompt), 'model': model}, timeout=999999)
         response.raise_for_status()
         review = response.json().get('response', '')
 
