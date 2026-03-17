@@ -20,7 +20,7 @@ def get_diff() -> str:
             sys.exit(0)
         return diff
     except FileNotFoundError:
-        print("❌ pr_diff.txt not found")
+        print("pr_diff.txt not found")
         sys.exit(1)
 
 def sanitize_prompt(prompt: str) -> str:
@@ -64,7 +64,7 @@ def sanitize_prompt(prompt: str) -> str:
     for pattern in injection_patterns:
         if re.search(pattern, prompt, re.IGNORECASE):
             print(pattern)
-            print(f"⚠️ Potential prompt injection detected, neutralizing...")
+            print(f"Potential prompt injection detected, neutralizing...")
             prompt = re.sub(pattern, '[REDACTED]', prompt, flags=re.IGNORECASE)
 
     return prompt
@@ -92,7 +92,7 @@ def ask_model(prompt: str) -> str:
 
     try:
         response = requests.post(
-            pr_review_url, json={'prompt': sanitize_prompt(prompt), 'model': model}, timeout=500)
+            pr_review_url, json={'prompt': sanitize_prompt(prompt), 'model': model}, timeout=999999)
         response.raise_for_status()
         review = response.json().get('response', '')
 
@@ -100,7 +100,7 @@ def ask_model(prompt: str) -> str:
             raise ValueError("No review received from the server")
         return review
     except requests.RequestException as e:
-        print(f"❌ Error making request to model: {e}")
+        print(f"Error making request to model: {e}")
         raise
 
 
@@ -193,9 +193,9 @@ def post_review_comment(gh_token: str, repo: str, pr_number: str, review: str) -
 
     print(f"GitHub API status: {result.status_code}")
     if result.status_code == 201:
-        print("✅ Posted main review successfully")
+        print("Posted main review successfully")
     else:
-        print(f"❌ Failed to post review: {result.text}")
+        print(f"Failed to post review: {result.text}")
         sys.exit(1)
 
 
@@ -234,9 +234,9 @@ def post_inline_comments(gh_token: str, repo: str, pr_number: str, commit_sha: s
             }
         )
         if result.status_code == 201:
-            print(f"✅ Inline comment posted on {filename}:{line_num}")
+            print(f"Inline comment posted on {filename}:{line_num}")
         else:
-            print(f"⚠️ Could not post inline on {filename}:{line_num} — {result.text}")
+            print(f"Could not post inline on {filename}:{line_num} — {result.text}")
 
 
 def populate_pr_description(gh_token: str, repo: str, pr_number: str, diff: str) -> None:
@@ -270,9 +270,9 @@ def populate_pr_description(gh_token: str, repo: str, pr_number: str, diff: str)
     )
 
     if result.status_code == 200:
-        print("✅ PR description updated successfully")
+        print("PR description updated successfully")
     else:
-        print(f"❌ Failed to update description: {result.text}")
+        print(f"Failed to update description: {result.text}")
 
 
 def check_verdict(review: str) -> None:
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     try:
         review = get_review(diff)
     except (requests.RequestException, KeyError, ValueError) as e:
-        print(f"❌ Error getting review: {e}")
+        print(f"Error getting review: {e}")
         sys.exit(1)
 
     try:
@@ -308,7 +308,7 @@ if __name__ == "__main__":
         post_inline_comments(gh_token, repo, pr_number, commit_sha, review)
         populate_pr_description(gh_token, repo, pr_number, diff)
     except KeyError as e:
-        print(f"❌ Missing environment variable: {e}")
+        print(f"Missing environment variable: {e}")
         sys.exit(1)
 
     check_verdict(review)
